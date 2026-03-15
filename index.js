@@ -1,5 +1,4 @@
-const { Client, GatewayIntentBits, PermissionsBitField } = require("discord.js")
-const fs = require("fs")
+const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")const fs = require("fs")
 
 const config = require("./config.json")
 
