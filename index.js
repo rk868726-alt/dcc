@@ -71,6 +71,25 @@ if (mirror[message.channel.id]) {
   }
  }
 
+ //Logger helper
+
+ const { EmbedBuilder } = require("discord.js")
+
+function sendLog(guild, embed) {
+
+ const data = JSON.parse(fs.readFileSync("./data/logs.json"))
+
+ const logChannelId = data[guild.id]
+
+ if (!logChannelId) return
+
+ const channel = guild.channels.cache.get(logChannelId)
+
+ if (!channel) return
+
+ channel.send({ embeds: [embed] })
+}
+
  /* ---------------- COMMAND HANDLER ---------------- */
 
  if (!message.content.startsWith(prefix)) return
