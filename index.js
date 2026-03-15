@@ -43,15 +43,24 @@ client.on("messageCreate", async message => {
   }
  }
 
- /* ---------------- MIRROR ---------------- */
+/* ---------------- MIRROR ---------------- */
 
- const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
+const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
 
- if (mirror[message.channel.id]) {
-  const target = message.guild.channels.cache.get(mirror[message.channel.id])
-  if (target) target.send(message.content)
+if (mirror[message.channel.id]) {
+
+ const targetChannel = message.guild.channels.cache.get(mirror[message.channel.id])
+
+ if (targetChannel) {
+
+  targetChannel.send({
+   content: message.content,
+   allowedMentions: { parse: [] }
+  })
+
  }
 
+}
  /* ---------------- AUTORESPONDER ---------------- */
 
  const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
