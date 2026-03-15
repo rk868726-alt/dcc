@@ -21,7 +21,7 @@ for (const file of commandFiles) {
  client.commands.set(command.name, command)
 }
 
-client.on("ready", () => {
+client.on("clientready", () => {
  console.log(`Logged in as ${client.user.tag}`)
 })
 
