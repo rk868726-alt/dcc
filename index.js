@@ -12,6 +12,12 @@ const client = new Client({
  ]
 })
 
+client.on("guildMemberRemove", member => {
+
+ console.log("Member removed:", member.user.tag)
+
+})
+
  //kick logger
 
  client.on("guildMemberRemove", async member => {
