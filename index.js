@@ -76,4 +76,4 @@ client.on("messageCreate", async message => {
  command.execute(message, args)
 })
 
-client.login(config.token)
+client.login(process.env.TOKEN)
