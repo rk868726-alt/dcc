@@ -8,10 +8,11 @@ const client = new Client({
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.MessageContent,
-  GatewayIntentBits.GuildMembers
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildVoiceStates,
+  GatewayIntentBits.GuildModeration
  ]
 })
-
 client.on("guildMemberRemove", member => {
 
  console.log("Member removed:", member.user.tag)
