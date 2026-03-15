@@ -90,6 +90,170 @@ function sendLog(guild, embed) {
  channel.send({ embeds: [embed] })
 }
 
+ //kick logger
+
+ client.on("guildMemberRemove", async member => {
+
+ const logs = await member.guild.fetchAuditLogs({ limit: 1 })
+
+ const log = logs.entries.first()
+
+ if (!log) return
+
+ if (log.action === 20 && log.target.id === member.id) {
+
+  const embed = new EmbedBuilder()
+   .setTitle("Member Kicked")
+   .setColor("Orange")
+   .addFields(
+    { name: "User", value: `${member.user.tag}` },
+    { name: "By", value: `${log.executor.tag}` }
+   )
+   .setTimestamp()
+
+  sendLog(member.guild, embed)
+ }
+
+})
+
+
+ //ban logger
+
+
+ client.on("guildBanAdd", async ban => {
+
+ const logs = await ban.guild.fetchAuditLogs({ limit: 1 })
+
+ const log = logs.entries.first()
+
+ const embed = new EmbedBuilder()
+  .setTitle("Member Banned")
+  .setColor("Red")
+  .addFields(
+   { name: "User", value: `${ban.user.tag}` },
+   { name: "By", value: `${log.executor.tag}` }
+  )
+  .setTimestamp()
+
+ sendLog(ban.guild, embed)
+
+})
+
+ //create or delete logger
+
+ client.on("channelCreate", async channel => {
+
+ const logs = await channel.guild.fetchAuditLogs({ limit: 1 })
+ const log = logs.entries.first()
+
+ const embed = new EmbedBuilder()
+  .setTitle("Channel Created")
+  .setColor("Green")
+  .addFields(
+   { name: "Channel", value: `${channel.name}` },
+   { name: "By", value: `${log.executor.tag}` }
+  )
+  .setTimestamp()
+
+ sendLog(channel.guild, embed)
+
+})
+
+ client.on("channelDelete", async channel => {
+
+ const logs = await channel.guild.fetchAuditLogs({ limit: 1 })
+ const log = logs.entries.first()
+
+ const embed = new EmbedBuilder()
+  .setTitle("Channel Deleted")
+  .setColor("DarkRed")
+  .addFields(
+   { name: "Channel", value: `${channel.name}` },
+   { name: "By", value: `${log.executor.tag}` }
+  )
+  .setTimestamp()
+
+ sendLog(channel.guild, embed)
+
+})
+
+ //voice logger
+
+
+
+ client.on("voiceStateUpdate", async (oldState, newState) => {
+
+ if (!oldState.channel && newState.channel) {
+
+  const embed = new EmbedBuilder()
+   .setTitle("Voice Join")
+   .addFields(
+    { name: "User", value: `${newState.member.user.tag}` },
+    { name: "Channel", value: `${newState.channel.name}` }
+   )
+   .setColor("Blue")
+
+  sendLog(newState.guild, embed)
+
+ }
+
+ if (oldState.channel && !newState.channel) {
+
+  const embed = new EmbedBuilder()
+   .setTitle("Voice Leave")
+   .addFields(
+    { name: "User", value: `${newState.member.user.tag}` },
+    { name: "Channel", value: `${oldState.channel.name}` }
+   )
+   .setColor("Grey")
+
+  sendLog(newState.guild, embed)
+
+ }
+
+})
+
+
+ //msg delete logger
+
+ client.on("messageDelete", message => {
+
+ if (!message.guild || message.author.bot) return
+
+ const embed = new EmbedBuilder()
+  .setTitle("Message Deleted")
+  .setColor("Red")
+  .addFields(
+   { name: "User", value: `${message.author.tag}` },
+   { name: "Channel", value: `${message.channel}` },
+   { name: "Message", value: message.content || "Empty" }
+  )
+  .setTimestamp()
+
+ sendLog(message.guild, embed)
+
+})
+
+
+ //timeout logger
+
+ client.on("guildMemberUpdate", (oldMember, newMember) => {
+
+ if (!oldMember.communicationDisabledUntil && newMember.communicationDisabledUntil) {
+
+  const embed = new EmbedBuilder()
+   .setTitle("Member Timed Out")
+   .setColor("Yellow")
+   .addFields(
+    { name: "User", value: `${newMember.user.tag}` }
+   )
+
+  sendLog(newMember.guild, embed)
+
+ }
+
+}) 
+ 
  /* ---------------- COMMAND HANDLER ---------------- */
 
  if (!message.content.startsWith(prefix)) return
