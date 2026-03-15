@@ -19,6 +19,30 @@ client.on("guildMemberRemove", member => {
 
 })
 
+function sendLog(guild, embed) {
+
+ const data = JSON.parse(fs.readFileSync("./data/logs.json"))
+
+ console.log("Loaded log data:", data)
+
+ const logChannelId = data[guild.id]
+
+ if (!logChannelId) {
+  console.log("No log channel set for this server")
+  return
+ }
+
+ const channel = guild.channels.cache.get(logChannelId)
+
+ if (!channel) {
+  console.log("Log channel not found")
+  return
+ }
+
+ channel.send({ embeds: [embed] })
+}
+
+
  //kick logger
 
  client.on("guildMemberRemove", async member => {
