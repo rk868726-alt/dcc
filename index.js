@@ -12,84 +12,6 @@ const client = new Client({
  ]
 })
 
-client.commands = new Map()
-
-const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"))
-
-for (const file of commandFiles) {
- const command = require(`./commands/${file}`)
- client.commands.set(command.name, command)
-}
-
-client.on("clientready", () => {
- console.log(`Logged in as ${client.user.tag}`)
-})
-
-client.on("messageCreate", async message => {
-
- if (message.author.bot) return
-
- const prefix = config.prefix
-
- /* ---------------- ANTI LINK ---------------- */
-
- const antiLink = JSON.parse(fs.readFileSync("./data/antilink.json"))
-
- if (antiLink[message.channel.id]) {
-  if (message.content.includes("http")) {
-   message.delete()
-   message.channel.send("Links are not allowed here.")
-   return
-  }
- }
-
-/* ---------------- MIRROR ---------------- */
-
-const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
-
-if (mirror[message.channel.id]) {
-
- const targetChannel = message.guild.channels.cache.get(mirror[message.channel.id])
-
- if (targetChannel) {
-
-  targetChannel.send({
-   content: message.content,
-   allowedMentions: { parse: [] }
-  })
-
- }
-
-}
- /* ---------------- AUTORESPONDER ---------------- */
-
- const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
-
- for (let trigger in autores) {
-  if (message.content.toLowerCase().includes(trigger)) {
-   message.channel.send(autores[trigger])
-  }
- }
-
- //Logger helper
-
- const { EmbedBuilder } = require("discord.js")
-
-function sendLog(guild, embed) {
-
- const data = JSON.parse(fs.readFileSync("./data/logs.json"))
-
- const logChannelId = data[guild.id]
-
- if (!logChannelId) return
-
- const channel = guild.channels.cache.get(logChannelId)
-
- if (!channel) return
-
- channel.send({ embeds: [embed] })
-}
-
  //kick logger
 
  client.on("guildMemberRemove", async member => {
@@ -254,6 +176,86 @@ function sendLog(guild, embed) {
 
 }) 
  
+
+client.commands = new Map()
+
+const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"))
+
+for (const file of commandFiles) {
+ const command = require(`./commands/${file}`)
+ client.commands.set(command.name, command)
+}
+
+client.on("clientready", () => {
+ console.log(`Logged in as ${client.user.tag}`)
+})
+
+client.on("messageCreate", async message => {
+
+ if (message.author.bot) return
+
+ const prefix = config.prefix
+
+ /* ---------------- ANTI LINK ---------------- */
+
+ const antiLink = JSON.parse(fs.readFileSync("./data/antilink.json"))
+
+ if (antiLink[message.channel.id]) {
+  if (message.content.includes("http")) {
+   message.delete()
+   message.channel.send("Links are not allowed here.")
+   return
+  }
+ }
+
+/* ---------------- MIRROR ---------------- */
+
+const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
+
+if (mirror[message.channel.id]) {
+
+ const targetChannel = message.guild.channels.cache.get(mirror[message.channel.id])
+
+ if (targetChannel) {
+
+  targetChannel.send({
+   content: message.content,
+   allowedMentions: { parse: [] }
+  })
+
+ }
+
+}
+ /* ---------------- AUTORESPONDER ---------------- */
+
+ const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
+
+ for (let trigger in autores) {
+  if (message.content.toLowerCase().includes(trigger)) {
+   message.channel.send(autores[trigger])
+  }
+ }
+
+ //Logger helper
+
+ const { EmbedBuilder } = require("discord.js")
+
+function sendLog(guild, embed) {
+
+ const data = JSON.parse(fs.readFileSync("./data/logs.json"))
+
+ const logChannelId = data[guild.id]
+
+ if (!logChannelId) return
+
+ const channel = guild.channels.cache.get(logChannelId)
+
+ if (!channel) return
+
+ channel.send({ embeds: [embed] })
+}
+
+
  /* ---------------- COMMAND HANDLER ---------------- */
 
  if (!message.content.startsWith(prefix)) return
