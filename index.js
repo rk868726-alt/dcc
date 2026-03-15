@@ -10,7 +10,8 @@ const client = new Client({
   GatewayIntentBits.MessageContent,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildModeration
+  GatewayIntentBits.GuildModeration,
+  GatewayIntentBits.GuildMessageReactions
  ]
 })
 client.on("guildMemberRemove", member => {
@@ -303,6 +304,50 @@ function sendLog(guild, embed) {
 
  command.execute(message, args)
 })
+//rection roles
+const fs = require("fs")
+
+client.on("messageReactionAdd", async (reaction, user) => {
+
+ if (user.bot) return
+
+ const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
+
+ const config = data[reaction.message.id]
+
+ if (!config) return
+
+ if (reaction.emoji.name === config.emoji) {
+
+  const member = reaction.message.guild.members.cache.get(user.id)
+
+  member.roles.add(config.role)
+
+ }
+
+})
+
+client.on("messageReactionRemove", async (reaction, user) => {
+
+ if (user.bot) return
+
+ const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
+
+ const config = data[reaction.message.id]
+
+ if (!config) return
+
+ if (reaction.emoji.name === config.emoji) {
+
+  const member = reaction.message.guild.members.cache.get(user.id)
+
+  member.roles.remove(config.role)
+
+ }
+
+})
+
+
 console.log("TOKEN:", process.env.TOKEN)
 
 client.login(process.env.TOKEN)
