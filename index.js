@@ -347,6 +347,50 @@ client.on("messageReactionRemove", async (reaction, user) => {
 
 })
 
+//reaction role handler
+
+client.on("messageReactionAdd", async (reaction, user) => {
+
+ if (user.bot) return
+
+ const fs = require("fs")
+ const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
+
+ const messageData = data[reaction.message.id]
+
+ if (!messageData) return
+
+ const roleId = messageData[reaction.emoji.name]
+
+ if (!roleId) return
+
+ const member = reaction.message.guild.members.cache.get(user.id)
+
+ member.roles.add(roleId)
+
+})
+
+client.on("messageReactionRemove", async (reaction, user) => {
+
+ if (user.bot) return
+
+ const fs = require("fs")
+ const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
+
+ const messageData = data[reaction.message.id]
+
+ if (!messageData) return
+
+ const roleId = messageData[reaction.emoji.name]
+
+ if (!roleId) return
+
+ const member = reaction.message.guild.members.cache.get(user.id)
+
+ member.roles.remove(roleId)
+
+})
+
 
 console.log("TOKEN:", process.env.TOKEN)
 
