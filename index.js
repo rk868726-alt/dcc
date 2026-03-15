@@ -69,6 +69,9 @@ function sendLog(guild, embed) {
 
 })
 
+client.on("messageDelete", message => {
+ console.log("Message deleted:", message.content)
+})
 
  //ban logger
 
