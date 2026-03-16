@@ -179,8 +179,7 @@ client.on("messageDelete", message => {
 
  client.on("messageDelete", message => {
 
- if (!message.guild || message.author.bot) return
-
+if (!message || !message.author || message.author.bot) return
  const embed = new EmbedBuilder()
   .setTitle("Message Deleted")
   .setColor("Red")
