@@ -175,24 +175,7 @@ client.on("messageDelete", message => {
 })
 
 
- //msg delete logger
-
- client.on("messageDelete", message => {
-
-if (!message || !message.author || message.author.bot) return
- const embed = new EmbedBuilder()
-  .setTitle("Message Deleted")
-  .setColor("Red")
-  .addFields(
-   { name: "User", value: `${message.author.tag}` },
-   { name: "Channel", value: `${message.channel}` },
-   { name: "Message", value: message.content || "Empty" }
-  )
-  .setTimestamp()
-
- sendLog(message.guild, embed)
-
-})
+ 
 
 
  //timeout logger
@@ -457,11 +440,9 @@ client.on("messageReactionRemove", async (reaction, user) => {
 })
 
 //message delete logs
-
 client.on("messageDelete", async message => {
 
- if (!message.guild) return
- if (!message.author) return
+ if (!message || !message.author || message.author.bot) return
 
  const logChannel = message.guild.channels.cache.get(config.logChannel)
  if (!logChannel) return
@@ -475,14 +456,12 @@ client.on("messageDelete", async message => {
    { name: "User", value: `${message.author.tag}`, inline: true },
    { name: "Channel", value: `${message.channel}`, inline: true }
   )
-  .setDescription(`**Message:**\n${message.content || "No text content"}`)
+  .setDescription(`**Message:**\n${message.content ? message.content : "No cached message content"}`)
   .setTimestamp()
 
  logChannel.send({ embeds: [embed] })
 
 })
-
-
 console.log("TOKEN:", process.env.TOKEN)
 
 client.login(process.env.TOKEN)
