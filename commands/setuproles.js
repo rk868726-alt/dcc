@@ -26,9 +26,9 @@ module.exports = {
   const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
 
   data[msg.id] = {
-   "🔥": "1482763269662969987",
+   "🔥": "1482933424892153916",
    "😈": "1482763703584559346",
-   "⚡": "1482933424892153916"
+   "⚡": "1482763269662969987"
   }
 
   fs.writeFileSync("./data/reactionroles.json", JSON.stringify(data, null, 2))
