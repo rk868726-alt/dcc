@@ -26,9 +26,9 @@ module.exports = {
   const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
 
   data[msg.id] = {
-   "🔥": "ROLE_ID_1",
-   "😈": "ROLE_ID_2",
-   "⚡": "ROLE_ID_3"
+   "🔥": "𝐇𝐀𝐊𝐈⚡",
+   "😈": "𝐒𝐇𝐀𝐑𝐈𝐍𝐆𝐀𝐍😈",
+   "⚡": "𝐁𝐀𝐍𝐊𝐀𝐈🔥"
   }
 
   fs.writeFileSync("./data/reactionroles.json", JSON.stringify(data, null, 2))
