@@ -231,8 +231,7 @@ client.on("clientready", () => {
 
 client.on("messageCreate", async message => {
 
- if (message.author.bot) return
-
+if (!message || !message.author || message.author.bot) return
  const prefix = config.prefix
 
  /* ---------------- ANTI LINK ---------------- */
