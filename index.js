@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")
  const fs = require("fs")
 
-const config = require("./config.json")
+const { Client, GatewayIntentBits, Partials } = require("discord.js")
 
 const client = new Client({
  intents: [
@@ -9,9 +9,12 @@ const client = new Client({
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.MessageContent,
   GatewayIntentBits.GuildMembers,
-  GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildModeration,
   GatewayIntentBits.GuildMessageReactions
+ ],
+ partials: [
+  Partials.Message,
+  Partials.Channel,
+  Partials.Reaction
  ]
 })
 client.on("guildMemberRemove", member => {
