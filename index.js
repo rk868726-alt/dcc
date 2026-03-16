@@ -1,7 +1,7 @@
 const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")
  const fs = require("fs")
 
-const { Client, GatewayIntentBits, Partials } = require("discord.js")
+const { Partials } = require("discord.js")
 
 const client = new Client({
  intents: [
