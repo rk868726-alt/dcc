@@ -305,7 +305,6 @@ function sendLog(guild, embed) {
  command.execute(message, args)
 })
 //rection roles
-const fs = require("fs")
 
 client.on("messageReactionAdd", async (reaction, user) => {
 
