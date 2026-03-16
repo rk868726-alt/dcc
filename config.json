@@ -1,3 +1,4 @@
 {
- "prefix": "!"
+ "prefix": "!",
+ "logChannel": "LOG_CHANNEL_ID"
 }
