@@ -457,6 +457,32 @@ client.on("messageReactionRemove", async (reaction, user) => {
 
 })
 
+//message delete logs
+
+client.on("messageDelete", async message => {
+
+ if (!message.guild) return
+ if (!message.author) return
+
+ const logChannel = message.guild.channels.cache.get(config.logChannel)
+ if (!logChannel) return
+
+ const { EmbedBuilder } = require("discord.js")
+
+ const embed = new EmbedBuilder()
+  .setColor("Red")
+  .setTitle("🗑️ Message Deleted")
+  .addFields(
+   { name: "User", value: `${message.author.tag}`, inline: true },
+   { name: "Channel", value: `${message.channel}`, inline: true }
+  )
+  .setDescription(`**Message:**\n${message.content || "No text content"}`)
+  .setTimestamp()
+
+ logChannel.send({ embeds: [embed] })
+
+})
+
 
 console.log("TOKEN:", process.env.TOKEN)
 
