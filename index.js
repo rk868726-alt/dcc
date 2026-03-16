@@ -264,6 +264,70 @@ if (mirror[message.channel.id]) {
  }
 
 }
+//TICKET PANNEL
+
+
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require("discord.js")
+
+client.on("interactionCreate", async interaction => {
+
+ if (!interaction.isButton()) return
+
+ const adminRole = "1446888967311065278" // replace
+
+ /* CREATE TICKET */
+
+ if (interaction.customId === "create_ticket") {
+
+  const channel = await interaction.guild.channels.create({
+   name: `ticket-${interaction.user.username}`,
+   type: 0,
+   permissionOverwrites: [
+    {
+     id: interaction.guild.id,
+     deny: [PermissionsBitField.Flags.ViewChannel]
+    },
+    {
+     id: interaction.user.id,
+     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
+    },
+    {
+     id: adminRole,
+     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages]
+    }
+   ]
+  })
+
+  const closeButton = new ActionRowBuilder().addComponents(
+   new ButtonBuilder()
+    .setCustomId("close_ticket")
+    .setLabel("Close Ticket")
+    .setStyle(ButtonStyle.Danger)
+  )
+
+  channel.send({
+   content: `<@&${adminRole}> Ticket created by ${interaction.user}`,
+   components: [closeButton]
+  })
+
+  interaction.reply({ content: `✅ Ticket created: ${channel}`, ephemeral: true })
+ }
+
+ /* CLOSE TICKET */
+
+ if (interaction.customId === "close_ticket") {
+
+  await interaction.reply("🔒 Ticket will close in 5 seconds.")
+
+  setTimeout(() => {
+   interaction.channel.delete()
+  }, 5000)
+
+ }
+
+})
+
+ 
  /* ---------------- AUTORESPONDER ---------------- */
 
  const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
