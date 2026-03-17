@@ -1,3 +1,10 @@
+
+const {
+ ActionRowBuilder,
+ ButtonBuilder,
+ ButtonStyle,
+ ChannelType
+} = require("discord.js")
 const config = require("./config.json")
 const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")
  const fs = require("fs")
@@ -299,6 +306,27 @@ function sendLog(guild, embed) {
  channel.send({ embeds: [embed] })
 }
 
+ //TICKET PANEL
+
+ if (message.content.startsWith(`${config.prefix}ticket`)) {
+
+ if (!message.member.permissions.has("Administrator"))
+  return message.reply("❌ Admin only command")
+
+ const row = new ActionRowBuilder().addComponents(
+  new ButtonBuilder()
+   .setCustomId("create_ticket")
+   .setLabel("🎫 Create Ticket")
+   .setStyle(ButtonStyle.Primary)
+ )
+
+ message.channel.send({
+  content: "🎟️ **Support System**\nClick the button below to create a ticket.",
+  components: [row]
+ })
+
+}
+
 
  /* ---------------- COMMAND HANDLER ---------------- */
 
@@ -350,6 +378,76 @@ client.on("messageReactionRemove", async (reaction, user) => {
   const member = reaction.message.guild.members.cache.get(user.id)
 
   member.roles.remove(config.role)
+
+ }
+
+})
+
+//TICKET
+
+client.on("interactionCreate", async (interaction) => {
+
+ if (!interaction.isButton()) return
+
+ // 🛑 prevent crash
+ if (interaction.replied || interaction.deferred) return
+
+ // 🎫 CREATE TICKET
+ if (interaction.customId === "create_ticket") {
+
+  const guild = interaction.guild
+  const member = interaction.user
+
+  const adminRole = "1446888967311065278" // 🔥 PUT ADMIN ROLE ID HERE
+
+  const channel = await guild.channels.create({
+   name: `ticket-${member.username}`,
+   type: ChannelType.GuildText,
+   permissionOverwrites: [
+    {
+     id: guild.id,
+     deny: [PermissionsBitField.Flags.ViewChannel],
+    },
+    {
+     id: member.id,
+     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
+    },
+    {
+     id: adminRole,
+     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
+    },
+   ],
+  })
+
+  const closeRow = new ActionRowBuilder().addComponents(
+   new ButtonBuilder()
+    .setCustomId("close_ticket")
+    .setLabel("🔒 Close Ticket")
+    .setStyle(ButtonStyle.Danger)
+  )
+
+  await channel.send({
+   content: `<@${member.id}> <@&${adminRole}>`,
+   components: [closeRow]
+  })
+
+  await interaction.reply({
+   content: `✅ Ticket created: ${channel}`,
+   flags: 64
+  })
+
+ }
+
+ // 🔒 CLOSE TICKET
+ if (interaction.customId === "close_ticket") {
+
+  await interaction.deferReply({ flags: 64 })
+
+  await interaction.editReply("🔒 Closing ticket in 3 seconds...")
+
+  setTimeout(() => {
+   interaction.channel.delete().catch(() => {})
+  }, 3000)
 
  }
 
