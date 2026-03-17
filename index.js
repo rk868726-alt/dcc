@@ -297,15 +297,16 @@ client.on("interactionCreate", async interaction => {
 
  /* CLOSE TICKET */
 
- /* CLOSE TICKET */
-
+// 🔒 CLOSE TICKET
  if (interaction.customId === "close_ticket") {
 
-  await interaction.reply("🔒 Ticket will close in 5 seconds.")
+  await interaction.deferReply({ flags: 64 })
+
+  await interaction.editReply("🔒 Closing ticket in 3 seconds...")
 
   setTimeout(() => {
-   interaction.channel.delete()
-  }, 5000)
+   interaction.channel.delete().catch(() => {})
+  }, 3000)
 
  }
 
