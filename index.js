@@ -299,13 +299,15 @@ client.on("interactionCreate", async interaction => {
 
  if (interaction.customId === "close_ticket") {
 
-  await interaction.reply("🔒 Ticket will close in 5 seconds.")
+ await interaction.deferReply({ ephemeral: true })
 
-  setTimeout(() => {
-   interaction.channel.delete()
-  }, 5000)
+ await interaction.editReply("🔒 Ticket will close in 3 seconds.")
 
- }
+ setTimeout(() => {
+  interaction.channel.delete().catch(() => {})
+ }, 3000)
+
+}
 
 })
 
