@@ -297,23 +297,19 @@ client.on("interactionCreate", async interaction => {
 
  /* CLOSE TICKET */
 
-client.on("interactionCreate", async (interaction) => {
-
- if (!interaction.isButton()) return
+ /* CLOSE TICKET */
 
  if (interaction.customId === "close_ticket") {
 
-  await interaction.deferReply({ flags: 64 })
-
-  await interaction.editReply("🔒 Ticket will close in 3 seconds...")
+  await interaction.reply("🔒 Ticket will close in 5 seconds.")
 
   setTimeout(() => {
-   interaction.channel.delete().catch(() => {})
-  }, 3000)
+   interaction.channel.delete()
+  }, 5000)
 
  }
 
-}) 
+})
 //UNBAN
  
  if (message.content.startsWith(`${config.prefix}unban`)) {
