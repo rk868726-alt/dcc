@@ -311,6 +311,28 @@ client.on("interactionCreate", async interaction => {
 
 })
 
+//UNBAN
+ 
+ if (message.content.startsWith(`${config.prefix}unban`)) {
+
+ if (!message.member.permissions.has("BanMembers"))
+  return message.reply("❌ You don't have permission to unban users.")
+
+ const args = message.content.split(" ")
+ const userId = args[1]
+
+ if (!userId) return message.reply("❌ Please provide a user ID.")
+
+ try {
+  await message.guild.members.unban(userId)
+
+  message.channel.send(`✅ Successfully unbanned user with ID: ${userId}`)
+
+ } catch (err) {
+  message.channel.send("❌ Failed to unban user. Make sure the ID is correct or user is banned.")
+ }
+
+}
  
  /* ---------------- AUTORESPONDER ---------------- */
 
