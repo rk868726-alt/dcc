@@ -245,11 +245,12 @@ if (mirror[message.channel.id]) {
 
  if (targetChannel) {
 
-  targetChannel.send({
-   content: message.content,
-   allowedMentions: { parse: [] }
-  })
-
+targetChannel.send({
+ content: message.content,
+ allowedMentions: {
+  parse: ["users", "roles", "everyone"]
+ }
+})
  }
 
 }
