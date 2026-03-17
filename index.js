@@ -488,7 +488,6 @@ client.on("messageDelete", async message => {
 
  logChannel.send({ embeds: [embed] })
 
-})
 
 })
 console.log("TOKEN:", process.env.TOKEN)
