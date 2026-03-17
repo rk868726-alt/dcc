@@ -303,8 +303,7 @@ client.on("interactionCreate", async (interaction) => {
 
  if (interaction.customId === "close_ticket") {
 
-  // ✅ respond instantly (NO delay before this)
-  await interaction.deferReply({ flags: 64 }) // 64 = ephemeral (NEW METHOD)
+  await interaction.deferReply({ flags: 64 })
 
   await interaction.editReply("🔒 Ticket will close in 3 seconds...")
 
@@ -313,10 +312,8 @@ client.on("interactionCreate", async (interaction) => {
   }, 3000)
 
  }
-}
- 
-})
 
+}) 
 //UNBAN
  
  if (message.content.startsWith(`${config.prefix}unban`)) {
