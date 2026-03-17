@@ -297,17 +297,22 @@ client.on("interactionCreate", async interaction => {
 
  /* CLOSE TICKET */
 
+client.on("interactionCreate", async (interaction) => {
+
+ if (!interaction.isButton()) return
+
  if (interaction.customId === "close_ticket") {
 
- await interaction.deferReply({ ephemeral: true })
+  // ✅ respond instantly (NO delay before this)
+  await interaction.deferReply({ flags: 64 }) // 64 = ephemeral (NEW METHOD)
 
- await interaction.editReply("🔒 Ticket will close in 3 seconds.")
+  await interaction.editReply("🔒 Ticket will close in 3 seconds...")
 
- setTimeout(() => {
-  interaction.channel.delete().catch(() => {})
- }, 3000)
+  setTimeout(() => {
+   interaction.channel.delete().catch(() => {})
+  }, 3000)
 
-}
+ }
 
 })
 
