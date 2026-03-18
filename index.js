@@ -12,6 +12,8 @@ const {
 } = require("discord.js")
 
 const config = require("./config.json")
+const axios = require('axios');
+require('dotenv').config();
 
 const client = new Client({
  intents: [
@@ -290,6 +292,46 @@ client.on("messageUpdate", (oldMsg, newMsg) => {
   ]
  })
 })
+
+//AI 
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  if (message.content.startsWith('!ai')) {
+    const prompt = message.content.replace('!ai', '').trim();
+
+    if (!prompt) {
+      return message.reply('Give me something to respond to!');
+    }
+
+    try {
+      const res = await axios.post(
+        'https://api.x.ai/v1/chat/completions',
+        {
+          model: "grok-2-latest", // or grok-beta (depends on your plan)
+          messages: [
+            { role: "system", content: "You are a helpful Discord bot." },
+            { role: "user", content: prompt }
+          ]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      const reply = res.data.choices[0].message.content;
+      message.reply(reply);
+
+    } catch (err) {
+      console.error(err.response?.data || err.message);
+      message.reply('❌ Error talking to Grok AI.');
+    }
+  }
+});
+
 
 /* ================= VOICE LOG ================= */
 
