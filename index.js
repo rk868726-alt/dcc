@@ -377,7 +377,6 @@ client.on("messageCreate", async (message) => {
  if (!command) return
 
  command.execute(message, args)
-})
 //rection roles
 
 client.on("messageReactionAdd", async (reaction, user) => {
