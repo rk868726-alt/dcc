@@ -254,31 +254,77 @@ client.on("messageReactionRemove", (reaction, user) => {
 client.on("interactionCreate", async (interaction) => {
  if (!interaction.isButton()) return
 
+ const ADMIN_ROLE_ID = "1446888967311065278" // 🔥 PUT YOUR ROLE ID
+
+ /* ================= CREATE TICKET ================= */
+
  if (interaction.customId === "create_ticket") {
+
   const channel = await interaction.guild.channels.create({
    name: `ticket-${interaction.user.username}`,
    type: ChannelType.GuildText,
    permissionOverwrites: [
     {
      id: interaction.guild.id,
-     deny: [PermissionsBitField.Flags.ViewChannel]
+     deny: [PermissionsBitField.Flags.ViewChannel],
     },
     {
      id: interaction.user.id,
-     allow: [PermissionsBitField.Flags.ViewChannel]
+     allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages
+     ],
+    },
+    {
+     id: ADMIN_ROLE_ID,
+     allow: [
+      PermissionsBitField.Flags.ViewChannel,
+      PermissionsBitField.Flags.SendMessages
+     ],
     }
-   ]
+   ],
+  })
+
+  /* 🔒 CLOSE BUTTON */
+  const row = new ActionRowBuilder().addComponents(
+   new ButtonBuilder()
+    .setCustomId("close_ticket")
+    .setLabel("🔒 Close Ticket")
+    .setStyle(ButtonStyle.Danger)
+  )
+
+  /* 📢 SEND MESSAGE IN TICKET CHANNEL */
+  await channel.send({
+   content: `🎫 Ticket created by <@${interaction.user.id}>\n<@&${ADMIN_ROLE_ID}>`,
+   components: [row]
   })
 
   await interaction.reply({
-   content: `✅ Created ${channel}`,
+   content: `✅ Ticket created: ${channel}`,
    ephemeral: true
   })
  }
 
+ /* ================= CLOSE TICKET ================= */
+
  if (interaction.customId === "close_ticket") {
-  await interaction.reply({ content: "Closing...", ephemeral: true })
-  setTimeout(() => interaction.channel.delete(), 2000)
+
+  // ❌ Only admin role can close
+  if (!interaction.member.roles.cache.has(ADMIN_ROLE_ID)) {
+   return interaction.reply({
+    content: "❌ Only admins can close tickets!",
+    ephemeral: true
+   })
+  }
+
+  await interaction.reply({
+   content: "🔒 Closing ticket in 3 seconds...",
+   ephemeral: true
+  })
+
+  setTimeout(() => {
+   interaction.channel.delete().catch(() => {})
+  }, 3000)
  }
 })
 
