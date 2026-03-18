@@ -303,27 +303,32 @@ targetChannel.send({
 
 //UNBAN
  
- if (message.content.startsWith(`${config.prefix}unban`)) {
+client.on("messageCreate", async (message) => {
 
- if (!message.member.permissions.has("BanMembers"))
-  return message.reply("❌ You don't have permission to unban users.")
+ if (message.author.bot) return
 
- const args = message.content.split(" ")
- const userId = args[1]
+ if (message.content.startsWith("!unban")) {
 
- if (!userId) return message.reply("❌ Please provide a user ID.")
+  if (!message.member.permissions.has("BanMembers"))
+   return message.reply("❌ You need ban permission")
 
- try {
-  await message.guild.members.unban(userId)
+  const args = message.content.split(" ")
+  const userId = args[1]
 
-  message.channel.send(`✅ Successfully unbanned user with ID: ${userId}`)
+  if (!userId) return message.reply("❌ Provide user ID")
 
- } catch (err) {
-  message.channel.send("❌ Failed to unban user. Make sure the ID is correct or user is banned.")
+  try {
+   await message.guild.members.unban(userId)
+
+   message.reply("✅ User unbanned successfully")
+
+  } catch (err) {
+   message.reply("❌ Failed to unban user")
+   console.error(err)
+  }
  }
 
-}
- 
+})
  /* ---------------- AUTORESPONDER ---------------- */
 
  const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
