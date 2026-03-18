@@ -19,7 +19,6 @@ const {
 } = require("discord.js")
 const config = require("./config.json")
 const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")
- const fs = require("fs")
 
 const { Partials } = require("discord.js")
 
