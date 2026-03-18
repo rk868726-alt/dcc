@@ -66,6 +66,55 @@ client.on("messageCreate", async (message) => {
 
  const prefix = config.prefix
 
+ // ===== MIRROR SYSTEM =====
+
+if (message.content.startsWith(`${prefix}setmirror`)) {
+
+ if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+  return message.reply("❌ Admin only command")
+
+ const target = message.mentions.channels.first()
+
+ if (!target)
+  return message.reply("❌ Mention a channel\nExample: !setmirror #general")
+
+ mirror[message.channel.id] = target.id
+
+ fs.writeFileSync("./data/mirror.json", JSON.stringify(mirror, null, 2))
+
+ message.reply(`✅ Mirror set!\nMessages from ${message.channel} → ${target}`)
+}
+
+ //REMOVE MIRROR
+
+ if (message.content === `${prefix}removemirror`) {
+
+ if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+  return message.reply("❌ Admin only command")
+
+ delete mirror[message.channel.id]
+
+ fs.writeFileSync("./data/mirror.json", JSON.stringify(mirror, null, 2))
+
+ message.reply("✅ Mirror removed for this channel")
+}
+
+ //MIRROR LOGIC
+ if (mirror[message.channel.id]) {
+
+ const targetChannel = message.guild.channels.cache.get(
+  mirror[message.channel.id]
+ )
+
+ if (!targetChannel) return
+
+ targetChannel.send({
+  content: message.content,
+  allowedMentions: {
+   parse: ["users", "roles", "everyone"]
+  }
+ })
+}
  /* -------- ANTI LINK -------- */
  if (antiLink[message.channel.id] && message.content.includes("http")) {
   await message.delete()
