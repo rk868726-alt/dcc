@@ -332,6 +332,66 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+//AIIII
+
+if (message.mentions.has(client.user)) {
+  const prompt = message.content.replace(/<@!?\\d+>/, '').trim();
+
+  if (!prompt) return;
+
+  const res = await axios.post(
+    'https://api.x.ai/v1/chat/completions',
+    {
+      model: "grok-2-latest",
+      messages: [{ role: "user", content: prompt }]
+    },
+    {
+      headers: {
+        'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  message.reply(res.data.choices[0].message.content);
+}
+
+//AI MEMO
+
+const memory = {};
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  if (!memory[message.author.id]) {
+    memory[message.author.id] = [];
+  }
+
+  if (message.content.startsWith('!ai')) {
+    const prompt = message.content.slice(3).trim();
+
+    memory[message.author.id].push({ role: "user", content: prompt });
+
+    const res = await axios.post(
+      'https://api.x.ai/v1/chat/completions',
+      {
+        model: "grok-2-latest",
+        messages: memory[message.author.id]
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROK_API_KEY}`
+        }
+      }
+    );
+
+    const reply = res.data.choices[0].message.content;
+
+    memory[message.author.id].push({ role: "assistant", content: reply });
+
+    message.reply(reply);
+  }
+});
 
 /* ================= VOICE LOG ================= */
 
