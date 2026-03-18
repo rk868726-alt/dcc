@@ -1,4 +1,16 @@
+const fs = require("fs")
 
+let logData = {}
+try {
+ logData = JSON.parse(fs.readFileSync("./logChannels.json"))
+} catch {
+ logData = {}
+}
+function getLogChannel(guild) {
+ const id = logData[guild.id]
+ if (!id) return null
+ return guild.channels.cache.get(id)
+}
 const {
  ActionRowBuilder,
  ButtonBuilder,
@@ -54,156 +66,172 @@ function sendLog(guild, embed) {
  channel.send({ embeds: [embed] })
 }
 
+//MSG DELE LOG
+client.on("messageDelete", async (message) => {
+ if (!message.guild || message.author?.bot) return
 
- //kick logger
+ const logChannel = getLogChannel(message.guild)
+ if (!logChannel) return
 
- client.on("guildMemberRemove", async member => {
-
- const logs = await member.guild.fetchAuditLogs({ limit: 1 })
-
- const log = logs.entries.first()
-
- if (!log) return
-
- if (log.action === 20 && log.target.id === member.id) {
-
-  const embed = new EmbedBuilder()
-   .setTitle("Member Kicked")
-   .setColor("Orange")
-   .addFields(
-    { name: "User", value: `${member.user.tag}` },
-    { name: "By", value: `${log.executor.tag}` }
-   )
-   .setTimestamp()
-
-  sendLog(member.guild, embed)
- }
-
+ logChannel.send({
+  embeds: [{
+   title: "🗑️ Message Deleted",
+   color: 0xff0000,
+   fields: [
+    { name: "User", value: `${message.author} (${message.author?.id})` },
+    { name: "Channel", value: `${message.channel}` },
+    { name: "Content", value: message.content || "No text" }
+   ],
+   timestamp: new Date()
+  }]
+ })
 })
 
-client.on("messageDelete", message => {
- console.log("Message deleted:", message.content)
+
+//MSG EDIT LOG
+
+ client.on("messageUpdate", async (oldMsg, newMsg) => {
+ if (!oldMsg.guild || oldMsg.author?.bot) return
+
+ const logChannel = getLogChannel(oldMsg.guild)
+ if (!logChannel) return
+
+ if (oldMsg.content === newMsg.content) return
+
+ logChannel.send({
+  embeds: [{
+   title: "✏️ Message Edited",
+   color: 0xffff00,
+   fields: [
+    { name: "User", value: `${oldMsg.author}` },
+    { name: "Before", value: oldMsg.content || "None" },
+    { name: "After", value: newMsg.content || "None" }
+   ],
+   timestamp: new Date()
+  }]
+ })
 })
 
- //ban logger
-
-
- client.on("guildBanAdd", async ban => {
-
- const logs = await ban.guild.fetchAuditLogs({ limit: 1 })
-
- const log = logs.entries.first()
-
- const embed = new EmbedBuilder()
-  .setTitle("Member Banned")
-  .setColor("Red")
-  .addFields(
-   { name: "User", value: `${ban.user.tag}` },
-   { name: "By", value: `${log.executor.tag}` }
-  )
-  .setTimestamp()
-
- sendLog(ban.guild, embed)
-
-})
-
- //create or delete logger
-
- client.on("channelCreate", async channel => {
-
- const logs = await channel.guild.fetchAuditLogs({ limit: 1 })
- const log = logs.entries.first()
-
- const embed = new EmbedBuilder()
-  .setTitle("Channel Created")
-  .setColor("Green")
-  .addFields(
-   { name: "Channel", value: `${channel.name}` },
-   { name: "By", value: `${log.executor.tag}` }
-  )
-  .setTimestamp()
-
- sendLog(channel.guild, embed)
-
-})
-
- client.on("channelDelete", async channel => {
-
- const logs = await channel.guild.fetchAuditLogs({ limit: 1 })
- const log = logs.entries.first()
-
- const embed = new EmbedBuilder()
-  .setTitle("Channel Deleted")
-  .setColor("DarkRed")
-  .addFields(
-   { name: "Channel", value: `${channel.name}` },
-   { name: "By", value: `${log.executor.tag}` }
-  )
-  .setTimestamp()
-
- sendLog(channel.guild, embed)
-
-})
-
- //voice logger
-
-
-
+//VOICE LOGGS
  client.on("voiceStateUpdate", async (oldState, newState) => {
 
- if (!oldState.channel && newState.channel) {
+ const logChannel = getLogChannel(newState.guild)
+ if (!logChannel) return
 
-  const embed = new EmbedBuilder()
-   .setTitle("Voice Join")
-   .addFields(
-    { name: "User", value: `${newState.member.user.tag}` },
-    { name: "Channel", value: `${newState.channel.name}` }
-   )
-   .setColor("Blue")
+ const user = newState.member.user
 
-  sendLog(newState.guild, embed)
+ let changes = []
 
- }
+ if (!oldState.channel && newState.channel)
+  changes.push("Joined VC")
 
- if (oldState.channel && !newState.channel) {
+ if (oldState.channel && !newState.channel)
+  changes.push("Left VC")
 
-  const embed = new EmbedBuilder()
-   .setTitle("Voice Leave")
-   .addFields(
-    { name: "User", value: `${newState.member.user.tag}` },
-    { name: "Channel", value: `${oldState.channel.name}` }
-   )
-   .setColor("Grey")
+ if (oldState.selfMute !== newState.selfMute)
+  changes.push(newState.selfMute ? "Self Muted" : "Self Unmuted")
 
-  sendLog(newState.guild, embed)
+ if (oldState.serverMute !== newState.serverMute)
+  changes.push(newState.serverMute ? "Server Muted" : "Server Unmuted")
 
- }
+ if (oldState.selfDeaf !== newState.selfDeaf)
+  changes.push(newState.selfDeaf ? "Self Deafened" : "Self Undeafened")
 
+ if (oldState.serverDeaf !== newState.serverDeaf)
+  changes.push(newState.serverDeaf ? "Server Deafened" : "Server Undeafened")
+
+ if (changes.length === 0) return
+
+ logChannel.send({
+  embeds: [{
+   title: "🔊 Voice State Changed",
+   color: 0x3498db,
+   thumbnail: { url: user.displayAvatarURL() },
+   fields: [
+    { name: "Member", value: `${user} (${user.id})` },
+    { name: "Channel", value: `${newState.channel || oldState.channel || "None"}` },
+    { name: "Changes", value: changes.join("\n") }
+   ],
+   timestamp: new Date()
+  }]
+ })
 })
 
+//KICK BAN LOGS
+client.on("guildMemberRemove", async (member) => {
+ const logChannel = getLogChannel(member.guild)
+ if (!logChannel) return
 
+ logChannel.send({
+  embeds: [{
+   title: "👢 Member Left / Kicked",
+   color: 0xff9900,
+   description: `${member.user} (${member.id})`,
+   timestamp: new Date()
+  }]
+ })
+})
+
+client.on("guildBanAdd", async (ban) => {
+ const logChannel = getLogChannel(ban.guild)
+ if (!logChannel) return
+
+ logChannel.send({
+  embeds: [{
+   title: "❌ User Banned",
+   color: 0xff0000,
+   description: `${ban.user} (${ban.user.id})`,
+   timestamp: new Date()
+  }]
+ })
+})
  
+//UNBAN LOGS
 
+client.on("guildBanRemove", async (ban) => {
+ const logChannel = getLogChannel(ban.guild)
+ if (!logChannel) return
 
- //timeout logger
+ logChannel.send({
+  embeds: [{
+   title: "🔓 User Unbanned",
+   color: 0x00ff00,
+   description: `${ban.user} (${ban.user.id})`,
+   timestamp: new Date()
+  }]
+ })
+})
 
- client.on("guildMemberUpdate", (oldMember, newMember) => {
+//Channel logs
+client.on("channelCreate", channel => {
+ const logChannel = getLogChannel(channel.guild)
+ if (!logChannel) return
 
- if (!oldMember.communicationDisabledUntil && newMember.communicationDisabledUntil) {
+ logChannel.send(`📁 Channel Created: ${channel.name}`)
+})
 
-  const embed = new EmbedBuilder()
-   .setTitle("Member Timed Out")
-   .setColor("Yellow")
-   .addFields(
-    { name: "User", value: `${newMember.user.tag}` }
-   )
+client.on("channelDelete", channel => {
+ const logChannel = getLogChannel(channel.guild)
+ if (!logChannel) return
 
-  sendLog(newMember.guild, embed)
+ logChannel.send(`🗑️ Channel Deleted: ${channel.name}`)
+})
 
- }
+//ROLE LOGS
 
-}) 
- 
+client.on("roleCreate", role => {
+ const logChannel = getLogChannel(role.guild)
+ if (!logChannel) return
+
+ logChannel.send(`🆕 Role Created: ${role.name}`)
+})
+
+client.on("roleDelete", role => {
+ const logChannel = getLogChannel(role.guild)
+ if (!logChannel) return
+
+ logChannel.send(`❌ Role Deleted: ${role.name}`)
+})
 
 client.commands = new Map()
 
