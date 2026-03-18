@@ -72,27 +72,6 @@ client.on("messageCreate", async (message) => {
   return message.channel.send("🚫 Links are not allowed here.")
  }
 
- /* -------- MIRROR -------- */
-  if (!message.guild || message.author.bot) return
-
- const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
-
- if (mirror[message.channel.id]) {
-
-  const targetChannel = message.guild.channels.cache.get(
-   mirror[message.channel.id]
-  )
-
-  if (targetChannel) {
-   targetChannel.send({
-    content: message.content,
-    allowedMentions: {
-     parse: ["users", "roles", "everyone"]
-    }
-   })
-  }
- }
-})
 
  /* -------- AUTO RESPONDER -------- */
  for (let trigger in autores) {
