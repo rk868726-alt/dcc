@@ -1,26 +1,17 @@
 const fs = require("fs")
-
-let logData = {}
-try {
- logData = JSON.parse(fs.readFileSync("./logChannels.json"))
-} catch {
- logData = {}
-}
-function getLogChannel(guild) {
- const id = logData[guild.id]
- if (!id) return null
- return guild.channels.cache.get(id)
-}
 const {
+ Client,
+ GatewayIntentBits,
+ Partials,
+ PermissionsBitField,
+ EmbedBuilder,
  ActionRowBuilder,
  ButtonBuilder,
  ButtonStyle,
  ChannelType
 } = require("discord.js")
-const config = require("./config.json")
-const { Client, GatewayIntentBits, PermissionsBitField, EmbedBuilder } = require("discord.js")
 
-const { Partials } = require("discord.js")
+const config = require("./config.json")
 
 const client = new Client({
  intents: [
@@ -28,519 +19,136 @@ const client = new Client({
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.MessageContent,
   GatewayIntentBits.GuildMembers,
-  GatewayIntentBits.GuildMessageReactions
+  GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.GuildVoiceStates
  ],
- partials: [
-  Partials.Message,
-  Partials.Channel,
-  Partials.Reaction
- ]
-})
-client.on("guildMemberRemove", member => {
-
- console.log("Member removed:", member.user.tag)
-
+ partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 })
 
-function sendLog(guild, embed) {
+/* ================= FILE LOAD ================= */
 
- const data = JSON.parse(fs.readFileSync("./data/logs.json"))
+let logData = loadJSON("./logChannels.json")
+let antiLink = loadJSON("./data/antilink.json")
+let mirror = loadJSON("./data/mirror.json")
+let autores = loadJSON("./data/autoresponder.json")
+let reactionRoles = loadJSON("./data/reactionroles.json")
 
- console.log("Loaded log data:", data)
-
- const logChannelId = data[guild.id]
-
- if (!logChannelId) {
-  console.log("No log channel set for this server")
-  return
+function loadJSON(path) {
+ try {
+  return JSON.parse(fs.readFileSync(path))
+ } catch {
+  return {}
  }
-
- const channel = guild.channels.cache.get(logChannelId)
-
- if (!channel) {
-  console.log("Log channel not found")
-  return
- }
-
- channel.send({ embeds: [embed] })
 }
 
-//MSG DELE LOG
-client.on("messageDelete", async (message) => {
- if (!message.guild || message.author?.bot) return
-
- const logChannel = getLogChannel(message.guild)
- if (!logChannel) return
-
- logChannel.send({
-  embeds: [{
-   title: "🗑️ Message Deleted",
-   color: 0xff0000,
-   fields: [
-    { name: "User", value: `${message.author} (${message.author?.id})` },
-    { name: "Channel", value: `${message.channel}` },
-    { name: "Content", value: message.content || "No text" }
-   ],
-   timestamp: new Date()
-  }]
- })
-})
-
-
-//MSG EDIT LOG
-
- client.on("messageUpdate", async (oldMsg, newMsg) => {
- if (!oldMsg.guild || oldMsg.author?.bot) return
-
- const logChannel = getLogChannel(oldMsg.guild)
- if (!logChannel) return
-
- if (oldMsg.content === newMsg.content) return
-
- logChannel.send({
-  embeds: [{
-   title: "✏️ Message Edited",
-   color: 0xffff00,
-   fields: [
-    { name: "User", value: `${oldMsg.author}` },
-    { name: "Before", value: oldMsg.content || "None" },
-    { name: "After", value: newMsg.content || "None" }
-   ],
-   timestamp: new Date()
-  }]
- })
-})
-
-//VOICE LOGGS
- client.on("voiceStateUpdate", async (oldState, newState) => {
-
- const logChannel = getLogChannel(newState.guild)
- if (!logChannel) return
-
- const user = newState.member.user
-
- let changes = []
-
- if (!oldState.channel && newState.channel)
-  changes.push("Joined VC")
-
- if (oldState.channel && !newState.channel)
-  changes.push("Left VC")
-
- if (oldState.selfMute !== newState.selfMute)
-  changes.push(newState.selfMute ? "Self Muted" : "Self Unmuted")
-
- if (oldState.serverMute !== newState.serverMute)
-  changes.push(newState.serverMute ? "Server Muted" : "Server Unmuted")
-
- if (oldState.selfDeaf !== newState.selfDeaf)
-  changes.push(newState.selfDeaf ? "Self Deafened" : "Self Undeafened")
-
- if (oldState.serverDeaf !== newState.serverDeaf)
-  changes.push(newState.serverDeaf ? "Server Deafened" : "Server Undeafened")
-
- if (changes.length === 0) return
-
- logChannel.send({
-  embeds: [{
-   title: "🔊 Voice State Changed",
-   color: 0x3498db,
-   thumbnail: { url: user.displayAvatarURL() },
-   fields: [
-    { name: "Member", value: `${user} (${user.id})` },
-    { name: "Channel", value: `${newState.channel || oldState.channel || "None"}` },
-    { name: "Changes", value: changes.join("\n") }
-   ],
-   timestamp: new Date()
-  }]
- })
-})
-
-//KICK BAN LOGS
-client.on("guildMemberRemove", async (member) => {
- const logChannel = getLogChannel(member.guild)
- if (!logChannel) return
-
- logChannel.send({
-  embeds: [{
-   title: "👢 Member Left / Kicked",
-   color: 0xff9900,
-   description: `${member.user} (${member.id})`,
-   timestamp: new Date()
-  }]
- })
-})
-
-client.on("guildBanAdd", async (ban) => {
- const logChannel = getLogChannel(ban.guild)
- if (!logChannel) return
-
- logChannel.send({
-  embeds: [{
-   title: "❌ User Banned",
-   color: 0xff0000,
-   description: `${ban.user} (${ban.user.id})`,
-   timestamp: new Date()
-  }]
- })
-})
- 
-//UNBAN LOGS
-
-client.on("guildBanRemove", async (ban) => {
- const logChannel = getLogChannel(ban.guild)
- if (!logChannel) return
-
- logChannel.send({
-  embeds: [{
-   title: "🔓 User Unbanned",
-   color: 0x00ff00,
-   description: `${ban.user} (${ban.user.id})`,
-   timestamp: new Date()
-  }]
- })
-})
-
-//Channel logs
-client.on("channelCreate", channel => {
- const logChannel = getLogChannel(channel.guild)
- if (!logChannel) return
-
- logChannel.send(`📁 Channel Created: ${channel.name}`)
-})
-
-client.on("channelDelete", channel => {
- const logChannel = getLogChannel(channel.guild)
- if (!logChannel) return
-
- logChannel.send(`🗑️ Channel Deleted: ${channel.name}`)
-})
-
-//ROLE LOGS
-
-client.on("roleCreate", role => {
- const logChannel = getLogChannel(role.guild)
- if (!logChannel) return
-
- logChannel.send(`🆕 Role Created: ${role.name}`)
-})
-
-client.on("roleDelete", role => {
- const logChannel = getLogChannel(role.guild)
- if (!logChannel) return
-
- logChannel.send(`❌ Role Deleted: ${role.name}`)
-})
-
-client.commands = new Map()
-
-const commandFiles = fs.readdirSync("./commands").filter(f => f.endsWith(".js"))
-
-for (const file of commandFiles) {
- const command = require(`./commands/${file}`)
- client.commands.set(command.name, command)
+function saveJSON(path, data) {
+ fs.writeFileSync(path, JSON.stringify(data, null, 2))
 }
 
-client.on("clientready", () => {
- console.log(`Logged in as ${client.user.tag}`)
+/* ================= READY ================= */
+
+client.on("ready", () => {
+ console.log(`✅ Logged in as ${client.user.tag}`)
 })
 
-client.on("messageCreate", async message => {
+/* ================= LOG CHANNEL ================= */
 
-if (!message || !message.author || message.author.bot) return
+function getLogChannel(guild) {
+ const id = logData[guild.id]
+ if (!id) return null
+ return guild.channels.cache.get(id)
+}
+
+/* ================= MESSAGE CREATE ================= */
+
+client.on("messageCreate", async (message) => {
+ if (!message.guild || message.author.bot) return
+
  const prefix = config.prefix
 
- /* ---------------- ANTI LINK ---------------- */
-
- const antiLink = JSON.parse(fs.readFileSync("./data/antilink.json"))
-
- if (antiLink[message.channel.id]) {
-  if (message.content.includes("http")) {
-   message.delete()
-   message.channel.send("Links are not allowed here.")
-   return
-  }
+ /* -------- ANTI LINK -------- */
+ if (antiLink[message.channel.id] && message.content.includes("http")) {
+  await message.delete()
+  return message.channel.send("🚫 Links are not allowed here.")
  }
 
-//SETLOG SMD
- if (message.author.bot) return
-
- if (message.content === "!setlog") {
-
-  if (!message.member.permissions.has("Administrator"))
-   return message.reply("❌ Admin only")
-
-  logData[message.guild.id] = message.channel.id
-
-  fs.writeFileSync("./logChannels.json", JSON.stringify(logData, null, 2))
-
-  message.reply("✅ Log channel set successfully!")
-
+ /* -------- MIRROR -------- */
+ if (mirror[message.channel.id]) {
+  const target = message.guild.channels.cache.get(mirror[message.channel.id])
+  if (target) target.send(message.content)
  }
 
-})
-
- 
-/* ---------------- MIRROR ---------------- */
-
-const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
-
-if (mirror[message.channel.id]) {
-
- const targetChannel = message.guild.channels.cache.get(mirror[message.channel.id])
-
- if (targetChannel) {
-
-targetChannel.send({
- content: message.content,
- allowedMentions: {
-  parse: ["users", "roles", "everyone"]
- }
-})
- }
-
-}
-
-//UNBAN
- 
-
- if (message.author.bot) return
-
- if (message.content.startsWith("!unban")) {
-
-  if (!message.member.permissions.has("BanMembers"))
-   return message.reply("❌ You need ban permission")
-
-  const args = message.content.split(" ")
-  const userId = args[1]
-
-  if (!userId) return message.reply("❌ Provide user ID")
-
-  try {
-   await message.guild.members.unban(userId)
-
-   message.reply("✅ User unbanned successfully")
-
-  } catch (err) {
-   message.reply("❌ Failed to unban user")
-   console.error(err)
-  }
- 
-
-})
- /* ---------------- AUTORESPONDER ---------------- */
-
- const autores = JSON.parse(fs.readFileSync("./data/autoresponder.json"))
-
+ /* -------- AUTO RESPONDER -------- */
  for (let trigger in autores) {
   if (message.content.toLowerCase().includes(trigger)) {
    message.channel.send(autores[trigger])
   }
  }
 
- //Logger helper
+ /* -------- SET LOG -------- */
+ if (message.content === `${prefix}setlog`) {
+  if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+   return message.reply("❌ Admin only")
 
+  logData[message.guild.id] = message.channel.id
+  saveJSON("./logChannels.json", logData)
 
+  return message.reply("✅ Log channel set!")
+ }
 
- //TICKET PANEL
+ /* -------- UNBAN -------- */
+ if (message.content.startsWith(`${prefix}unban`)) {
+  if (!message.member.permissions.has(PermissionsBitField.Flags.BanMembers))
+   return message.reply("❌ No permission")
 
- if (message.content.startsWith(`${config.prefix}ticket`)) {
+  const userId = message.content.split(" ")[1]
+  if (!userId) return message.reply("❌ Provide user ID")
 
- if (!message.member.permissions.has("Administrator"))
-  return message.reply("❌ Admin only command")
+  try {
+   await message.guild.members.unban(userId)
+   message.reply("✅ Unbanned successfully")
+  } catch {
+   message.reply("❌ Failed to unban")
+  }
+ }
 
- const row = new ActionRowBuilder().addComponents(
-  new ButtonBuilder()
-   .setCustomId("create_ticket")
-   .setLabel("🎫 Create Ticket")
-   .setStyle(ButtonStyle.Primary)
- )
+ /* -------- TICKET PANEL -------- */
+ if (message.content.startsWith(`${prefix}ticket`)) {
+  if (!message.member.permissions.has(PermissionsBitField.Flags.Administrator))
+   return
 
- message.channel.send({
-  content: "🎟️ **Support System**\nClick the button below to create a ticket.",
-  components: [row]
- })
+  const row = new ActionRowBuilder().addComponents(
+   new ButtonBuilder()
+    .setCustomId("create_ticket")
+    .setLabel("🎫 Create Ticket")
+    .setStyle(ButtonStyle.Primary)
+  )
 
-}
+  message.channel.send({
+   content: "🎟️ Click below to create ticket",
+   components: [row]
+  })
+ }
 
-
- /* ---------------- COMMAND HANDLER ---------------- */
-
+ /* -------- COMMAND HANDLER -------- */
  if (!message.content.startsWith(prefix)) return
 
  const args = message.content.slice(prefix.length).trim().split(/ +/)
  const cmd = args.shift().toLowerCase()
 
+ if (!client.commands) client.commands = new Map()
+
  const command = client.commands.get(cmd)
-
- if (!command) return
-
- command.execute(message, args)
-//rection roles
-
-client.on("messageReactionAdd", async (reaction, user) => {
-
- if (user.bot) return
-
- const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
-
- const config = data[reaction.message.id]
-
- if (!config) return
-
- if (reaction.emoji.name === config.emoji) {
-
-  const member = reaction.message.guild.members.cache.get(user.id)
-
-  member.roles.add(config.role)
-
- }
-
+ if (command) command.execute(message, args)
 })
 
-client.on("messageReactionRemove", async (reaction, user) => {
+/* ================= MESSAGE LOGS ================= */
 
- if (user.bot) return
+client.on("messageDelete", (message) => {
+ if (!message.guild || message.author?.bot) return
 
- const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
-
- const config = data[reaction.message.id]
-
- if (!config) return
-
- if (reaction.emoji.name === config.emoji) {
-
-  const member = reaction.message.guild.members.cache.get(user.id)
-
-  member.roles.remove(config.role)
-
- }
-
-})
-
-//TICKET
-
-client.on("interactionCreate", async (interaction) => {
-
- if (!interaction.isButton()) return
-
- // 🛑 prevent crash
- if (interaction.replied || interaction.deferred) return
-
- // 🎫 CREATE TICKET
- if (interaction.customId === "create_ticket") {
-
-  const guild = interaction.guild
-  const member = interaction.user
-
-  const adminRole = "1446888967311065278" // 🔥 PUT ADMIN ROLE ID HERE
-
-  const channel = await guild.channels.create({
-   name: `ticket-${member.username}`,
-   type: ChannelType.GuildText,
-   permissionOverwrites: [
-    {
-     id: guild.id,
-     deny: [PermissionsBitField.Flags.ViewChannel],
-    },
-    {
-     id: member.id,
-     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
-    },
-    {
-     id: adminRole,
-     allow: [PermissionsBitField.Flags.ViewChannel, PermissionsBitField.Flags.SendMessages],
-    },
-   ],
-  })
-
-  const closeRow = new ActionRowBuilder().addComponents(
-   new ButtonBuilder()
-    .setCustomId("close_ticket")
-    .setLabel("🔒 Close Ticket")
-    .setStyle(ButtonStyle.Danger)
-  )
-
-  await channel.send({
-   content: `<@${member.id}> <@&${adminRole}>`,
-   components: [closeRow]
-  })
-
-  await interaction.reply({
-   content: `✅ Ticket created: ${channel}`,
-   flags: 64
-  })
-
- }
-
- // 🔒 CLOSE TICKET
- if (interaction.customId === "close_ticket") {
-
-  await interaction.deferReply({ flags: 64 })
-
-  await interaction.editReply("🔒 Closing ticket in 3 seconds...")
-
-  setTimeout(() => {
-   interaction.channel.delete().catch(() => {})
-  }, 3000)
-
- }
-
-})
-
-//reaction role handler
-
-client.on("messageReactionAdd", async (reaction, user) => {
-
- if (user.bot) return
-
- const fs = require("fs")
- const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
-
- const messageData = data[reaction.message.id]
-
- if (!messageData) return
-
- const roleId = messageData[reaction.emoji.name]
-
- if (!roleId) return
-
- const member = reaction.message.guild.members.cache.get(user.id)
-
- member.roles.add(roleId)
-
-})
-
-client.on("messageReactionRemove", async (reaction, user) => {
-
- if (user.bot) return
-
- const fs = require("fs")
- const data = JSON.parse(fs.readFileSync("./data/reactionroles.json"))
-
- const messageData = data[reaction.message.id]
-
- if (!messageData) return
-
- const roleId = messageData[reaction.emoji.name]
-
- if (!roleId) return
-
- const member = reaction.message.guild.members.cache.get(user.id)
-
- member.roles.remove(roleId)
-
-})
-
-//message delete logs
-client.on("messageDelete", async message => {
-
- if (!message || !message.author || message.author.bot) return
-
- const logChannel = message.guild.channels.cache.get(config.logChannel)
+ const logChannel = getLogChannel(message.guild)
  if (!logChannel) return
-
- const { EmbedBuilder } = require("discord.js")
 
  const embed = new EmbedBuilder()
   .setColor("Red")
@@ -549,13 +157,136 @@ client.on("messageDelete", async message => {
    { name: "User", value: `${message.author.tag}`, inline: true },
    { name: "Channel", value: `${message.channel}`, inline: true }
   )
-  .setDescription(`**Message:**\n${message.content ? message.content : "No cached message content"}`)
+  .setDescription(message.content || "No content")
   .setTimestamp()
 
  logChannel.send({ embeds: [embed] })
-
-
 })
-console.log("TOKEN:", process.env.TOKEN)
+
+client.on("messageUpdate", (oldMsg, newMsg) => {
+ if (!oldMsg.guild || oldMsg.author?.bot) return
+ if (oldMsg.content === newMsg.content) return
+
+ const logChannel = getLogChannel(oldMsg.guild)
+ if (!logChannel) return
+
+ logChannel.send({
+  embeds: [
+   new EmbedBuilder()
+    .setColor("Yellow")
+    .setTitle("✏️ Message Edited")
+    .addFields(
+     { name: "User", value: `${oldMsg.author}` },
+     { name: "Before", value: oldMsg.content || "None" },
+     { name: "After", value: newMsg.content || "None" }
+    )
+    .setTimestamp()
+  ]
+ })
+})
+
+/* ================= VOICE LOG ================= */
+
+client.on("voiceStateUpdate", (oldState, newState) => {
+ const logChannel = getLogChannel(newState.guild)
+ if (!logChannel) return
+
+ const user = newState.member.user
+ let changes = []
+
+ if (!oldState.channel && newState.channel) changes.push("Joined VC")
+ if (oldState.channel && !newState.channel) changes.push("Left VC")
+
+ if (!changes.length) return
+
+ logChannel.send({
+  embeds: [
+   new EmbedBuilder()
+    .setColor("Blue")
+    .setTitle("🔊 Voice Update")
+    .setDescription(`${user} → ${changes.join(", ")}`)
+    .setTimestamp()
+  ]
+ })
+})
+
+/* ================= BAN LOGS ================= */
+
+client.on("guildBanAdd", (ban) => {
+ const logChannel = getLogChannel(ban.guild)
+ if (!logChannel) return
+
+ logChannel.send(`❌ ${ban.user.tag} was banned`)
+})
+
+client.on("guildBanRemove", (ban) => {
+ const logChannel = getLogChannel(ban.guild)
+ if (!logChannel) return
+
+ logChannel.send(`🔓 ${ban.user.tag} was unbanned`)
+})
+
+/* ================= REACTION ROLES ================= */
+
+client.on("messageReactionAdd", (reaction, user) => {
+ if (user.bot) return
+
+ const data = reactionRoles[reaction.message.id]
+ if (!data) return
+
+ const roleId = data[reaction.emoji.name]
+ if (!roleId) return
+
+ const member = reaction.message.guild.members.cache.get(user.id)
+ member.roles.add(roleId)
+})
+
+client.on("messageReactionRemove", (reaction, user) => {
+ if (user.bot) return
+
+ const data = reactionRoles[reaction.message.id]
+ if (!data) return
+
+ const roleId = data[reaction.emoji.name]
+ if (!roleId) return
+
+ const member = reaction.message.guild.members.cache.get(user.id)
+ member.roles.remove(roleId)
+})
+
+/* ================= TICKET SYSTEM ================= */
+
+client.on("interactionCreate", async (interaction) => {
+ if (!interaction.isButton()) return
+
+ if (interaction.customId === "create_ticket") {
+  const channel = await interaction.guild.channels.create({
+   name: `ticket-${interaction.user.username}`,
+   type: ChannelType.GuildText,
+   permissionOverwrites: [
+    {
+     id: interaction.guild.id,
+     deny: [PermissionsBitField.Flags.ViewChannel]
+    },
+    {
+     id: interaction.user.id,
+     allow: [PermissionsBitField.Flags.ViewChannel]
+    }
+   ]
+  })
+
+  await interaction.reply({
+   content: `✅ Created ${channel}`,
+   ephemeral: true
+  })
+ }
+
+ if (interaction.customId === "close_ticket") {
+  await interaction.reply({ content: "Closing...", ephemeral: true })
+  setTimeout(() => interaction.channel.delete(), 2000)
+ }
+})
+
+/* ================= LOGIN ================= */
 
 client.login(process.env.TOKEN)
