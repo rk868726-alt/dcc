@@ -341,8 +341,6 @@ client.on("messageCreate", async (message) => {
 
  //Logger helper
 
- const { EmbedBuilder } = require("discord.js")
-
 function sendLog(guild, embed) {
 
  const data = JSON.parse(fs.readFileSync("./data/logs.json"))
