@@ -99,6 +99,42 @@ if (message.content.startsWith(`${prefix}setmirror`)) {
  message.reply("✅ Mirror removed for this channel")
 }
 
+//LOCK
+
+ if (message.content.startsWith(`${prefix}lock`)) {
+
+ if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+  return message.reply("❌ You need Manage Channels permission")
+
+ await message.channel.permissionOverwrites.edit(
+  message.guild.roles.everyone,
+  { SendMessages: false }
+ )
+
+ // 👇 PASTE EMBED HERE
+ const embed = new EmbedBuilder()
+  .setColor("Red")
+  .setDescription("🔒 Channel has been locked")
+  .setTimestamp()
+
+ message.channel.send({ embeds: [embed] })
+}
+
+ //UNLOCK
+
+ if (message.content.startsWith(`${prefix}unlock`)) {
+
+ if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+  return message.reply("❌ You need Manage Channels permission")
+
+ await message.channel.permissionOverwrites.edit(
+  message.guild.roles.everyone,
+  { SendMessages: true }
+ )
+
+ message.channel.send("🔓 Channel unlocked!")
+}
+ 
  //MIRROR LOGIC
  if (mirror[message.channel.id]) {
 
