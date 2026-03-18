@@ -308,7 +308,7 @@ client.on('messageCreate', async (message) => {
       const res = await axios.post(
         'https://api.x.ai/v1/chat/completions',
         {
-          model: "grok-2-latest", // or grok-beta (depends on your plan)
+          model: "grok-beta",// or grok-beta (depends on your plan)
           messages: [
             { role: "system", content: "You are a helpful Discord bot." },
             { role: "user", content: prompt }
