@@ -262,6 +262,25 @@ if (!message || !message.author || message.author.bot) return
   }
  }
 
+//SETLOG SMD
+ if (message.author.bot) return
+
+ if (message.content === "!setlog") {
+
+  if (!message.member.permissions.has("Administrator"))
+   return message.reply("❌ Admin only")
+
+  logData[message.guild.id] = message.channel.id
+
+  fs.writeFileSync("./logChannels.json", JSON.stringify(logData, null, 2))
+
+  message.reply("✅ Log channel set successfully!")
+
+ }
+
+})
+
+ 
 /* ---------------- MIRROR ---------------- */
 
 const mirror = JSON.parse(fs.readFileSync("./data/mirror.json"))
