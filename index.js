@@ -134,6 +134,32 @@ if (message.content.startsWith(`${prefix}setmirror`)) {
 
  message.channel.send("🔓 Channel unlocked!")
 }
+
+ //purge
+
+ if (message.content.startsWith(`${prefix}purge`)) {
+
+ if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
+  return message.reply("❌ You need Manage Messages permission")
+
+ const args = message.content.split(" ")
+ const amount = parseInt(args[1])
+
+ if (!amount || amount < 1 || amount > 100)
+  return message.reply("❌ Enter a number between 1 - 100")
+
+ try {
+  await message.channel.bulkDelete(amount, true)
+
+  const msg = await message.channel.send(`🧹 Deleted ${amount} messages`)
+  
+  setTimeout(() => msg.delete().catch(() => {}), 3000)
+
+ } catch (err) {
+  console.error(err)
+  message.reply("❌ Failed to delete messages")
+ }
+}
  
  //MIRROR LOGIC
  if (mirror[message.channel.id]) {
