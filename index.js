@@ -341,20 +341,7 @@ client.on("messageCreate", async (message) => {
 
  //Logger helper
 
-function sendLog(guild, embed) {
 
- const data = JSON.parse(fs.readFileSync("./data/logs.json"))
-
- const logChannelId = data[guild.id]
-
- if (!logChannelId) return
-
- const channel = guild.channels.cache.get(logChannelId)
-
- if (!channel) return
-
- channel.send({ embeds: [embed] })
-}
 
  //TICKET PANEL
 
