@@ -303,7 +303,6 @@ targetChannel.send({
 
 //UNBAN
  
-client.on("messageCreate", async (message) => {
 
  if (message.author.bot) return
 
@@ -326,7 +325,7 @@ client.on("messageCreate", async (message) => {
    message.reply("❌ Failed to unban user")
    console.error(err)
   }
- }
+ 
 
 })
  /* ---------------- AUTORESPONDER ---------------- */
